@@ -1,0 +1,11 @@
+python3-vitexsoftware-abraflexi (1.0.0-1) unstable; urgency=medium
+
+  * Initial release
+  * Converted from PHP AbraFlexi library
+  * Full REST API support with ReadOnly and ReadWrite classes
+  * Support for all authentication methods
+  * Transaction and batch operation support
+  * Native Python type conversion
+  * Comprehensive examples and documentation
+
+ -- Vítězslav Dvořák <info@vitexsoftware.cz>  Sat, 25 Jan 2026 13:00:00 +0100

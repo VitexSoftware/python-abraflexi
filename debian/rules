@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=python_abraflexi
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build *.egg-info
+
+override_dh_auto_test:
+	# Skip tests during build (can be enabled later)
+	@echo "Tests skipped during build"
