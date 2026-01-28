@@ -1,4 +1,4 @@
-Source: python3-vitexsoftware-abraflexi
+Source: python-abraflexi
 Section: python
 Priority: optional
 Maintainer: Vítězslav Dvořák <info@vitexsoftware.cz>
@@ -9,19 +9,19 @@ Build-Depends: debhelper (>= 12),
                python3-requests,
                python3-dateutil,
                python3-urllib3
-Standards-Version: 4.5.0
+Standards-Version: 4.7.0
 Homepage: https://github.com/VitexSoftware/python-abraflexi
 Vcs-Git: https://github.com/VitexSoftware/python-abraflexi.git
 Vcs-Browser: https://github.com/VitexSoftware/python-abraflexi
 
-Package: python3-vitexsoftware-abraflexi
+Package: python3-abraflexi
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
          python3-requests (>= 2.28.0),
          python3-dateutil (>= 2.8.0),
          python3-urllib3 (>= 1.26.0)
-Suggests: python3-vitexsoftware-abraflexi-doc
+Suggests: python3-abraflexi-doc
 Description: Python library for AbraFlexi REST API
  Python implementation of AbraFlexi (FlexiBee) REST API client.
  This library provides easy interaction with the Czech economic system AbraFlexi.
@@ -35,11 +35,11 @@ Description: Python library for AbraFlexi REST API
   * Batch operations
   * Native Python type conversion
 
-Package: python3-vitexsoftware-abraflexi-doc
+Package: python3-abraflexi-doc
 Section: doc
 Architecture: all
 Depends: ${misc:Depends}
-Description: Documentation for python3-vitexsoftware-abraflexi
+Description: Documentation for python3-abraflexi
  Python implementation of AbraFlexi (FlexiBee) REST API client.
  .
  This package contains the documentation.
