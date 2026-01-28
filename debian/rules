@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export PYBUILD_NAME=python_abraflexi
+export PYBUILD_NAME=abraflexi
 
 %:
 	dh $@ --with python3 --buildsystem=pybuild

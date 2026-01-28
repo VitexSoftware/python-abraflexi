@@ -1,5 +1,12 @@
+python-abraflexi (1.0.2) UNRELEASED; urgency=medium
+
+  * debian package name fix
+
+ -- vitex <info@vitexsoftware.cz>  Wed, 28 Jan 2026 21:42:57 +0100
+
 python-abraflexi (1.0.1-1) unstable; urgency=medium
 
+  [ Vítězslav Dvořák ]
   * Initial release
   * Converted from PHP AbraFlexi library
   * Full REST API support with ReadOnly and ReadWrite classes
@@ -8,4 +15,4 @@ python-abraflexi (1.0.1-1) unstable; urgency=medium
   * Native Python type conversion
   * Comprehensive examples and documentation
 
- -- Vítězslav Dvořák <info@vitexsoftware.cz>  Sat, 25 Jan 2025 13:00:00 +0100
+ -- vitex <info@vitexsoftware.cz>  Wed, 28 Jan 2026 21:41:22 +0100
