@@ -1,6 +1,6 @@
-# WARP.md
+# AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides guidance to AI coding agents when working with code in this repository.
 
 ## Project Overview
 
@@ -122,6 +122,8 @@ python_abraflexi/          # Main library package
 examples/                  # Usage examples
 tests/                     # Pytest tests
 debian/                    # Debian packaging files
+debian/io.github.vitexsoftware.python_abraflexi.metainfo.xml  # AppStream metadata
+python-abraflexi.svg       # Project icon, installed as the "python-abraflexi" stock icon
 docs/                      # Documentation
 ```
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="generic">
+  <id>io.github.vitexsoftware.python_abraflexi</id>
+  <icon type="stock">python-abraflexi</icon>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>python-abraflexi</name>
+  <summary>Python library for AbraFlexi REST API</summary>
+  <description>
+    <p>
+      Python implementation of the AbraFlexi (FlexiBee) REST API client. Provides an
+      object-oriented interface to the Czech economic system AbraFlexi, with evidence
+      classes for AbraFlexi entities, authentication, transactions and batch operations.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/VitexSoftware/python-abraflexi</url>
+  <url type="bugtracker">https://github.com/VitexSoftware/python-abraflexi/issues</url>
+  <developer id="cz.vitexsoftware">
+    <name>Vítězslav Dvořák</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+</component>
