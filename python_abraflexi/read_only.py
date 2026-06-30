@@ -9,7 +9,7 @@ import json
 import logging
 from typing import Optional, Dict, Any, Union, List
 from datetime import datetime, date
-from urllib.parse import urlencode, urlparse, parse_qs
+from urllib.parse import urlencode, urlparse, parse_qs, quote
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -375,15 +375,21 @@ class ReadOnly:
         else:
             url = self.api_url or self.get_evidence_url() + f".{self.format}"
 
+        # Add filter as a parenthesized path segment (AbraFlexi only honors
+        # filters this way; a "filter" query-string parameter is silently
+        # ignored by the server).
+        if self.filter:
+            suffix = f".{self.format}"
+            encoded_filter = quote(self.filter, safe="()='*,<>!")
+            if url.endswith(suffix):
+                url = url[: -len(suffix)] + f"/({encoded_filter}){suffix}"
+            else:
+                url += f"/({encoded_filter})"
+
         # Add default URL parameters
         if self.default_url_params:
             separator = "&" if "?" in url else "?"
             url += separator + urlencode(self.default_url_params)
-
-        # Add filter
-        if self.filter:
-            separator = "&" if "?" in url else "?"
-            url += separator + urlencode({"filter": self.filter})
 
         # Prepare headers
         headers = self.default_http_headers.copy()
