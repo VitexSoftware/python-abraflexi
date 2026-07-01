@@ -5,8 +5,14 @@ Extends ReadOnly with insert, update, and delete operations.
 """
 
 import json
+import mimetypes
+import os
 from typing import Optional, Dict, Any, Union, List
+from urllib.parse import quote
 
+import requests
+
+from .exceptions import ConnectionException
 from .read_only import ReadOnly
 
 
@@ -294,3 +300,90 @@ class ReadWrite(ReadOnly):
 
         # Perform POST request
         return self.perform_request("", "POST")
+
+    def add_attachment(
+        self, filename: str, content: bytes, content_type: str
+    ) -> Optional[int]:
+        """
+        Attach a file to the current record.
+
+        Uses AbraFlexi's dedicated attachment endpoint
+        (``{evidence}/{id}/prilohy/new/{filename}``), which takes the raw
+        file bytes as the request body directly rather than a base64-wrapped
+        JSON field nested in the parent record (AbraFlexi supports the latter
+        too, but this is the endpoint the official PHP client uses).
+
+        This endpoint answers in XML unless explicitly asked for JSON via
+        the ``Accept`` header, so that header is always sent to keep parsing
+        consistent with the rest of this client.
+
+        Args:
+            filename: Name to store the attachment as
+            content: Raw file content
+            content_type: MIME type of the content
+
+        Returns:
+            ID of the created attachment record, or None on failure
+
+        Raises:
+            ValueError: If the record has no identifier yet (must be saved first)
+            ConnectionException: On network/timeout errors
+            AbraFlexiException: On unexpected AbraFlexi errors
+        """
+        if not self.get_record_ident():
+            raise ValueError("Cannot add attachment without record identifier")
+
+        url = (
+            f"{self.get_evidence_url()}/{self.get_record_ident()}"
+            f"/prilohy/new/{quote(filename)}"
+        )
+
+        try:
+            self.logger.debug(f"PUT {url}")
+            response = self.session.put(
+                url,
+                data=content,
+                headers={
+                    **self.default_http_headers,
+                    "Content-Type": content_type,
+                    "Accept": "application/json",
+                },
+                timeout=self.timeout,
+            )
+            self.last_response = response
+            self.last_response_code = response.status_code
+        except requests.exceptions.Timeout:
+            self.last_curl_error = f"Request timeout after {self.timeout}s"
+            if self.throw_exception:
+                raise ConnectionException(self.last_curl_error)
+            return None
+        except requests.exceptions.RequestException as e:
+            self.last_curl_error = str(e)
+            if self.throw_exception:
+                raise ConnectionException(self.last_curl_error)
+            return None
+
+        result = self._parse_http_response(response)
+
+        if result and isinstance(result, list) and len(result) > 0 and "id" in result[0]:
+            return int(result[0]["id"])
+        return None
+
+    def add_attachment_from_file(self, filepath: str) -> Optional[int]:
+        """
+        Attach a local file to the current record, auto-detecting its MIME type.
+
+        Args:
+            filepath: Path to the file to attach
+
+        Returns:
+            ID of the created attachment record, or None on failure
+        """
+        with open(filepath, "rb") as fh:
+            content = fh.read()
+
+        content_type, _ = mimetypes.guess_type(filepath)
+        if not content_type:
+            content_type = "application/octet-stream"
+
+        return self.add_attachment(os.path.basename(filepath), content, content_type)

@@ -1,3 +1,11 @@
+python-abraflexi (1.1.0-1) unstable; urgency=medium
+
+  * Add attachment upload support (add_attachment,
+    add_attachment_from_file), adapted from the PHP
+    AbraFlexi\Priloha::addAttachment reference implementation
+
+ -- vitex <info@vitexsoftware.cz>  Wed, 01 Jul 2026 23:56:28 +0200
+
 python-abraflexi (1.0.2) unstable; urgency=medium
 
   * debian package name fix

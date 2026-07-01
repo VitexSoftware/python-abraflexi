@@ -31,7 +31,7 @@ class ReadOnly:
     """
 
     # Library version
-    LIB_VERSION = "1.0.2"
+    LIB_VERSION = "1.1.0"
 
     # Default configuration
     DEFAULT_TIMEOUT = 300
