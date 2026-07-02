@@ -4,6 +4,7 @@ ReadWrite class for writing data to AbraFlexi REST API.
 Extends ReadOnly with insert, update, and delete operations.
 """
 
+import base64
 import json
 import mimetypes
 import os
@@ -89,12 +90,19 @@ class ReadWrite(ReadOnly):
 
         return result
 
-    def update(self, data: Optional[Dict[str, Any]] = None) -> Union[Dict, bool]:
+    def update(
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        remove_external_ids: Optional[str] = None,
+    ) -> Union[Dict, bool]:
         """
         Update existing record in AbraFlexi.
 
         Args:
             data: Data to update (uses self.data if None)
+            remove_external_ids: If given, remove external identifiers
+                starting with this prefix (empty string removes all of
+                them) as part of the update, per "Identifikátory záznamů".
 
         Returns:
             Response data or False on error
@@ -107,7 +115,9 @@ class ReadWrite(ReadOnly):
             raise ValueError("Cannot update without record identifier")
 
         # Prepare JSON data
-        self.post_fields = self._get_jsonized_data(data)
+        self.post_fields = self._get_jsonized_data(
+            data, remove_external_ids=remove_external_ids
+        )
 
         # Perform POST request
         return self.perform_request("", "POST")
@@ -133,12 +143,19 @@ class ReadWrite(ReadOnly):
         result = self.perform_request("", "DELETE")
         return bool(result)
 
-    def save(self, data: Optional[Dict[str, Any]] = None) -> Union[Dict, bool]:
+    def save(
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        remove_external_ids: Optional[str] = None,
+    ) -> Union[Dict, bool]:
         """
         Save record (insert or update).
 
         Args:
             data: Data to save
+            remove_external_ids: If given, remove external identifiers
+                starting with this prefix as part of the save (only takes
+                effect on update; see :meth:`update`).
 
         Returns:
             Response data or False on error
@@ -148,7 +165,7 @@ class ReadWrite(ReadOnly):
 
         # Determine if insert or update
         if self.get_record_id() or "id" in data:
-            return self.update(data)
+            return self.update(data, remove_external_ids=remove_external_ids)
         else:
             return self.insert_to_abraflexi(data)
 
@@ -179,9 +196,7 @@ class ReadWrite(ReadOnly):
             return self.perform_request(url_suffix, "POST")
 
     def copy(
-        self,
-        source_id: Union[int, str],
-        dest_data: Optional[Dict] = None
+        self, source_id: Union[int, str], dest_data: Optional[Dict] = None
     ) -> Union[Dict, bool]:
         """
         Copy existing record.
@@ -215,8 +230,98 @@ class ReadWrite(ReadOnly):
         # Insert new record
         return self.insert_to_abraflexi(data)
 
+    def _send_evidence_action(
+        self,
+        action: str,
+        extra_data: Optional[Dict[str, Any]] = None,
+        filter_str: Optional[str] = None,
+    ) -> Union[Dict, bool]:
+        """
+        Send a body-level ``action`` attribute to the evidence (as opposed
+        to :meth:`perform_action`, which calls a dedicated
+        ``{id}/{action}.json`` URL for custom business actions).
+
+        This is how AbraFlexi implements record deletion/storno/locking as
+        part of an ordinary JSON import, per "Provádění akcí" and
+        "Zamykání a odemykání záznamů". It can also target every record
+        matching a filter at once ("Dávkové operace") when ``filter_str``
+        is given instead of relying on the current record identifier.
+
+        Args:
+            action: Action name (e.g. "lock", "unlock", "delete", "storno")
+            extra_data: Additional fields to send alongside the action
+            filter_str: If given, apply the action to every record matching
+                this filter instead of the current record
+
+        Returns:
+            Response data or False on error
+        """
+        body: Dict[str, Any] = dict(extra_data or {})
+        if filter_str:
+            body["@filter"] = filter_str
+        else:
+            if not self.get_record_ident():
+                raise ValueError(
+                    "Cannot perform action without record identifier or filter"
+                )
+            body["id"] = self.get_record_ident()
+        body["@action"] = action
+
+        self.post_fields = self._get_jsonized_data(body)
+        return self.perform_request("", "POST")
+
+    def lock(self) -> Union[Dict, bool]:
+        """Lock the current record, preventing further changes until unlocked."""
+        return self._send_evidence_action("lock")
+
+    def unlock(self) -> Union[Dict, bool]:
+        """Unlock the current record."""
+        return self._send_evidence_action("unlock")
+
+    def lock_for_ucetni(self) -> Union[Dict, bool]:
+        """Lock the current record for the accountant (``lock-for-ucetni``)."""
+        return self._send_evidence_action("lock-for-ucetni")
+
+    def storno(self) -> Union[Dict, bool]:
+        """Cancel (storno) the current document record."""
+        return self._send_evidence_action("storno")
+
+    def mass_update(
+        self,
+        filter_str: str,
+        data: Optional[Dict[str, Any]] = None,
+        action: Optional[str] = None,
+    ) -> Union[Dict, bool]:
+        """
+        Update, or perform an action on, every record of the current
+        evidence matching ``filter_str`` in a single request
+        ("Dávkové operace").
+
+        Args:
+            filter_str: Filter selecting the records to affect
+            data: Fields to set on every matching record
+            action: If given, perform this action (e.g. "lock") on every
+                matching record instead of (or in addition to) updating
+                fields
+
+        Returns:
+            Response data or False on error
+        """
+        if action:
+            return self._send_evidence_action(
+                action, extra_data=data, filter_str=filter_str
+            )
+
+        body: Dict[str, Any] = dict(data or {})
+        body["@filter"] = filter_str
+        self.post_fields = self._get_jsonized_data(body)
+        return self.perform_request("", "POST")
+
     def _get_jsonized_data(
-        self, data: Union[Dict, List], pretty: bool = False
+        self,
+        data: Union[Dict, List],
+        pretty: bool = False,
+        remove_external_ids: Optional[str] = None,
     ) -> str:
         """
         Convert data to JSON format for API.
@@ -224,10 +329,15 @@ class ReadWrite(ReadOnly):
         Args:
             data: Data to convert
             pretty: Pretty print JSON
+            remove_external_ids: If given, add ``@removeExternalIds`` with
+                this value to a single-record payload
 
         Returns:
             JSON string
         """
+        if remove_external_ids is not None and isinstance(data, dict):
+            data = {**data, "@removeExternalIds": remove_external_ids}
+
         # Wrap in evidence namespace
         if isinstance(data, dict):
             payload = {self.NAMESPACE: {self.evidence: data}}
@@ -365,7 +475,12 @@ class ReadWrite(ReadOnly):
 
         result = self._parse_http_response(response)
 
-        if result and isinstance(result, list) and len(result) > 0 and "id" in result[0]:
+        if (
+            result
+            and isinstance(result, list)
+            and len(result) > 0
+            and "id" in result[0]
+        ):
             return int(result[0]["id"])
         return None
 
@@ -387,3 +502,138 @@ class ReadWrite(ReadOnly):
             content_type = "application/octet-stream"
 
         return self.add_attachment(os.path.basename(filepath), content, content_type)
+
+    def list_attachments(self) -> Union[List, bool]:
+        """List attachments (``přílohy``) of the current record."""
+        if not self.get_record_ident():
+            raise ValueError("Cannot list attachments without record identifier")
+        return self.perform_request(f"{self.get_record_ident()}/prilohy.json")
+
+    def get_attachment(self, attachment_id: Union[int, str]) -> Union[Dict, bool]:
+        """Get metadata for a single attachment of the current record."""
+        if not self.get_record_ident():
+            raise ValueError("Cannot get attachment without record identifier")
+        return self.perform_request(
+            f"{self.get_record_ident()}/prilohy/{attachment_id}.json"
+        )
+
+    def download_attachment(self, attachment_id: Union[int, str]) -> Union[bytes, bool]:
+        """Download the raw binary content of an attachment."""
+        if not self.get_record_ident():
+            raise ValueError("Cannot download attachment without record identifier")
+        return self.perform_request(
+            f"{self.get_record_ident()}/prilohy/{attachment_id}/content", binary=True
+        )
+
+    def get_attachment_thumbnail(
+        self,
+        attachment_id: Union[int, str],
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+    ) -> Union[bytes, bool]:
+        """
+        Download the thumbnail of an image attachment.
+
+        Args:
+            attachment_id: Attachment record identifier
+            width: Requested thumbnail width in pixels
+            height: Requested thumbnail height in pixels
+
+        Returns:
+            Raw thumbnail image bytes, or False (404) if none exists
+        """
+        if not self.get_record_ident():
+            raise ValueError("Cannot get thumbnail without record identifier")
+        suffix = f"{self.get_record_ident()}/prilohy/{attachment_id}/thumbnail"
+        params = {}
+        if width:
+            params["w"] = width
+        if height:
+            params["h"] = height
+        if params:
+            suffix += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+        return self.perform_request(suffix, binary=True)
+
+    def delete_attachment(self, attachment_id: Union[int, str]) -> bool:
+        """Delete an attachment from the current record."""
+        if not self.get_record_ident():
+            raise ValueError("Cannot delete attachment without record identifier")
+        result = self.perform_request(
+            f"{self.get_record_ident()}/prilohy/{attachment_id}.json", "DELETE"
+        )
+        return bool(result)
+
+    def export_report(
+        self,
+        record_id: Optional[Union[int, str]] = None,
+        report_format: str = "pdf",
+        report_name: Optional[str] = None,
+        report_lang: Optional[str] = None,
+        report_sign: bool = False,
+    ) -> Union[bytes, bool]:
+        """
+        Export a printable report for the current evidence (or a specific
+        record) as PDF or XLSX ("Export tiskových sestav").
+
+        Args:
+            record_id: Record to export a report for; the whole evidence
+                listing is exported if omitted
+            report_format: "pdf" or "xls"
+            report_name: Specific report identifier (see :meth:`get_reports`)
+            report_lang: Report language ("cs", "sk", "en" or "de")
+            report_sign: Whether to electronically sign the exported PDF
+
+        Returns:
+            Raw report bytes
+        """
+        extension = "xls" if report_format == "xls" else "pdf"
+        previous_format = self.format
+        previous_key = self.my_key
+        previous_params = dict(self.default_url_params)
+        try:
+            self.format = extension
+            if record_id is not None:
+                self.my_key = record_id
+            self._update_api_url()
+            if report_name:
+                self.default_url_params["report-name"] = report_name
+            if report_lang:
+                self.default_url_params["report-lang"] = report_lang
+            if report_sign:
+                self.default_url_params["report-sign"] = "true"
+            return self.perform_request("", binary=True)
+        finally:
+            self.format = previous_format
+            self.my_key = previous_key
+            self.default_url_params = previous_params
+            self._update_api_url()
+
+    def get_qr_code_image(self, size: int = 140) -> Union[bytes, bool]:
+        """
+        Get the payment QR code for the current document as a raw PNG image.
+
+        Args:
+            size: Requested image size in pixels
+
+        Returns:
+            Raw PNG bytes
+        """
+        if not self.get_record_ident():
+            raise ValueError("Cannot get QR code without record identifier")
+        return self.perform_request(
+            f"{self.get_record_ident()}/qrcode.png?size={size}", binary=True
+        )
+
+    def get_qr_code_base64(self, size: int = 140) -> str:
+        """
+        Get the payment QR code for the current document as a base64 data URI.
+
+        Args:
+            size: Requested image size in pixels
+
+        Returns:
+            ``data:image/png;base64,...`` string
+        """
+        image = self.get_qr_code_image(size)
+        encoded = base64.b64encode(image).decode("ascii") if image else ""
+        return f"data:image/png;base64,{encoded}"

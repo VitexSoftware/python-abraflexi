@@ -12,11 +12,14 @@ __license__ = "MIT"
 from .read_only import ReadOnly
 from .read_write import ReadWrite
 from .relation import Relation
+from .changes import Changes
+from .evidences import Adresar, FakturaVydana
 from .exceptions import (
     AbraFlexiException,
     ConnectionException,
     AuthenticationException,
     NotFoundException,
+    PermissionException,
     ValidationException,
 )
 
@@ -24,9 +27,13 @@ __all__ = [
     "ReadOnly",
     "ReadWrite",
     "Relation",
+    "Changes",
+    "Adresar",
+    "FakturaVydana",
     "AbraFlexiException",
     "ConnectionException",
     "AuthenticationException",
     "NotFoundException",
+    "PermissionException",
     "ValidationException",
 ]

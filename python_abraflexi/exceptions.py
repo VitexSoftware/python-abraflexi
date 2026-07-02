@@ -27,6 +27,12 @@ class NotFoundException(AbraFlexiException):
     pass
 
 
+class PermissionException(AbraFlexiException):
+    """Raised when the write REST API is not licensed (402) or the user lacks rights (403)."""
+
+    pass
+
+
 class ValidationException(AbraFlexiException):
     """Exception raised when data validation fails."""
 

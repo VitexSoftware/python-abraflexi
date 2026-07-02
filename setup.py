@@ -9,11 +9,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 # Read requirements
 with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+    requirements = [
+        line.strip() for line in fh if line.strip() and not line.startswith("#")
+    ]
 
 setup(
     name="python-abraflexi",
-    version="1.0.2",
+    version="1.1.0",
     author="Vítězslav Dvořák",
     author_email="info@vitexsoftware.cz",
     description="Python library for AbraFlexi REST API",

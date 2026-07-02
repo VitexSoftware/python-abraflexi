@@ -39,6 +39,9 @@ dev = [
     "flake8>=4.0",
     "mypy>=0.950",
 ]
+docs = [
+    "sphinx>=7.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/VitexSoftware/python-abraflexi"
