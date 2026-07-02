@@ -137,7 +137,13 @@ debian/python3-abraflexi/
 debian/.debhelper/
 debian/python3-abraflexi-doc/
 debian/python3-abraflexi-doc.substvars
+debian/python3-abraflexi-doc-en/
+debian/python3-abraflexi-doc-en.substvars
+debian/doc-en-html/
 debian/debhelper-build-stamp
 debian/python3-abraflexi.substvars
 debian/files
+debian/*.debhelper
+debian/*.debhelper.log
 .pybuild/
+docs/pdf/

@@ -4,11 +4,14 @@ Priority: optional
 Maintainer: Vítězslav Dvořák <info@vitexsoftware.cz>
 Build-Depends: debhelper (>= 12),
                dh-python,
+               dh-apache2 | apache2-dev,
                python3-all,
                python3-setuptools,
                python3-requests,
                python3-dateutil,
-               python3-urllib3
+               python3-urllib3,
+               python3-sphinx,
+               python3-shibuya-sphinx-theme
 Standards-Version: 4.7.0
 Homepage: https://github.com/VitexSoftware/python-abraflexi
 Vcs-Git: https://github.com/VitexSoftware/python-abraflexi.git
@@ -43,3 +46,17 @@ Description: Documentation for python3-abraflexi
  Python implementation of AbraFlexi (FlexiBee) REST API client.
  .
  This package contains the documentation.
+
+Package: python3-abraflexi-doc-en
+Section: doc
+Multi-Arch: foreign
+Architecture: all
+Depends: ${misc:Depends}
+Recommends: apache2 | nginx, ${misc:Recommends}
+Description: python-abraflexi English HTML documentation
+ Sphinx-generated English HTML documentation for python-abraflexi, a Python
+ client library for the AbraFlexi (FlexiBee) REST API.
+ .
+ An Apache2 configuration snippet is enabled automatically on installation.
+ An Nginx configuration snippet is installed to
+ /usr/share/doc/python3-abraflexi-doc-en/.

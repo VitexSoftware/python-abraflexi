@@ -1,0 +1,3 @@
+debian/doc-en-html/* usr/share/doc/python3-abraflexi-doc-en/html
+debian/python3-abraflexi-doc-en.nginx usr/share/doc/python3-abraflexi-doc-en/
+debian/io.github.vitexsoftware.python_abraflexi_doc_en.metainfo.xml usr/share/metainfo/

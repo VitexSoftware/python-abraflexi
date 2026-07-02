@@ -1,5 +1,14 @@
-English documentation
-======================
+.. image:: ../_static/python-abraflexi.svg
+   :align: center
+   :width: 160px
+   :alt: python-abraflexi logo
+   :target: https://github.com/VitexSoftware/python-abraflexi/
+
+python-abraflexi library documentation
+=======================================
+
+`Source code on GitHub <https://github.com/VitexSoftware/python-abraflexi/>`_
+| Developed and maintained by `VitexSoftware <https://www.vitexsoftware.com/>`_
 
 .. toctree::
    :maxdepth: 2

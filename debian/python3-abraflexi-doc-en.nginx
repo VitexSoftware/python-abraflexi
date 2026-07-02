@@ -1,0 +1,5 @@
+location /python3-abraflexi-doc-en/ {
+    alias /usr/share/doc/python3-abraflexi-doc-en/html/;
+    index index.html;
+    try_files $uri $uri/ =404;
+}

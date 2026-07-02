@@ -11,12 +11,19 @@ This is a Python port of the [PHP AbraFlexi library](https://github.com/Spoje-NE
 
 ## Features
 
-- **Full REST API Support**: Complete implementation of AbraFlexi REST API
-- **Object-Oriented Interface**: Clean, Pythonic API design
-- **Multiple Authentication Methods**: Basic auth, session ID
+- **Object-Oriented Interface**: Clean, Pythonic API design (`ReadOnly` / `ReadWrite`)
+- **Multiple Authentication Methods**: HTTP Basic, JSON login session (`login`/`logout`/`keep_alive`)
 - **Type Conversion**: Automatic conversion between AbraFlexi and Python types
+- **Pagination & Sorting**: `set_limit`/`set_start`/`iterate_all`/`set_order`
+- **Filtering & Detail Levels**: `filter`, `detail=`, `relations=`, `includes=`
 - **Transaction Support**: Atomic operations with dry-run mode
-- **Batch Operations**: Efficient bulk insert/update operations
+- **Batch Operations**: Bulk insert/update, plus filter-scoped mass updates/actions
+- **Actions & Locking**: `lock`/`unlock`/`lock_for_ucetni`/`storno`, custom business actions
+- **Attachments**: Upload, list, download, thumbnail and delete
+- **Changes API**: Company-wide change tracking for incremental sync
+- **Reports & QR codes**: PDF/XLSX export, payment QR codes, saved user queries
+- **Ready-made evidence classes**: `FakturaVydana` (issued invoices) and `Adresar` (address book),
+  built from reusable mixins (`python_abraflexi.mixins`) you can combine for your own evidences
 - **Comprehensive Error Handling**: Detailed exceptions for all error cases
 - **Easy Configuration**: Environment variables, constructor parameters, or config files
 
@@ -39,7 +46,9 @@ pip install python-abraflexi
 ### Debian/Ubuntu Package
 
 ```bash
-sudo apt install python3-vitexsoftware-abraflexi
+sudo apt install python3-abraflexi          # the library
+sudo apt install python3-abraflexi-doc      # README/examples
+sudo apt install python3-abraflexi-doc-en   # full Sphinx HTML documentation
 ```
 
 ## Quick Start
@@ -150,34 +159,53 @@ Configuration can be provided in three ways (in order of priority):
 
 ## Evidence Classes
 
-Create evidence-specific classes by extending ReadWrite:
+Two ready-made evidence classes are included, built on top of `ReadWrite` and
+the reusable mixins in `python_abraflexi.mixins`:
+
+```python
+from python_abraflexi import FakturaVydana, Adresar
+
+options = {
+    'url': 'https://demo.flexibee.eu',
+    'company': 'demo',
+    'user': 'winstrom',
+    'password': 'winstrom',
+}
+
+invoice = FakturaVydana('code:TEST001', options)
+invoice.get_labels()                      # LabelsMixin
+invoice.lock()                            # locking action
+invoice.get_qr_code_base64()              # payment QR code
+invoice.export_report(report_name='dodaciList')  # PDF export
+
+customer = Adresar(123, options)
+customer.get_notification_email_address()  # contact-fallback email lookup
+```
+
+Build your own evidence class the same way, combining `ReadWrite` with just
+the mixins you need:
 
 ```python
 from python_abraflexi import ReadWrite
+from python_abraflexi.mixins import LabelsMixin, SumMixin, LockMixin
 
-class FakturaVydana(ReadWrite):
-    """Issued invoice evidence."""
-    
+class FakturaPrijata(LabelsMixin, SumMixin, LockMixin, ReadWrite):
+    """Received invoice evidence."""
+
     def __init__(self, init=None, options=None):
         if options is None:
             options = {}
-        options['evidence'] = 'faktura-vydana'
+        options['evidence'] = 'faktura-prijata'
         super().__init__(init, options)
-    
+
     def pay(self, amount, date):
-        """Mark invoice as paid."""
+        """Mark invoice as paid via a custom business action."""
         return self.perform_action('zauctovat', {
             'castka': amount,
             'datum': date
         })
 
-# Usage
-invoice = FakturaVydana('code:TEST001', {
-    'url': 'https://demo.flexibee.eu',
-    'company': 'demo',
-    'user': 'winstrom',
-    'password': 'winstrom'
-})
+invoice = FakturaPrijata('code:TEST001', options)
 invoice.pay(1000, '2026-01-25')
 ```
 
@@ -202,7 +230,7 @@ The library automatically converts between AbraFlexi and Python types:
 | date | datetime.date | date(2026, 1, 25) |
 | datetime | datetime.datetime | datetime(2026, 1, 25, 14, 30) |
 | logic | bool | True/False |
-| relation | int/str | 123 or "code:ABC" |
+| relation | `Relation` object | `Relation("code:ABC")`, exposes `.id`/`.code`/`.ext`/`.ean`/`.plu`/`.vat_id`/`.ico`/`.iban`/`.key`/`.hybrid` |
 
 ## Error Handling
 
@@ -222,6 +250,20 @@ except NotFoundException:
 except ValidationException as e:
     print(f"Validation errors: {e.errors}")
 ```
+
+## Documentation
+
+Full bilingual (English + Czech) documentation is under [`docs/`](docs/),
+built with Sphinx (covers authentication, CRUD, filtering, pagination,
+batch operations, attachments, the Changes API, reports, evidence classes
+and mixins, error handling, and an autodoc API reference):
+
+```bash
+pip install sphinx sphinx-shibuya   # or: apt install python3-sphinx python3-shibuya-sphinx-theme
+sphinx-build -b html docs docs/_build
+```
+
+Or install the pre-built package: `sudo apt install python3-abraflexi-doc-en`.
 
 ## Development
 
@@ -268,7 +310,8 @@ MIT License - see LICENSE file for details
 ## Links
 
 - **Original PHP Library**: https://github.com/Spoje-NET/php-abraflexi
-- **AbraFlexi API Documentation**: https://www.abraflexi.eu/api/dokumentace/
+- **AbraFlexi REST API Reference** (standalone, bilingual): https://github.com/VitexSoftware/abraflexi-api-doc
+- **Official AbraFlexi API Documentation**: https://podpora.flexibee.eu/cs/collections/2592813-dokumentace-rest-api
 - **AbraFlexi Demo**: https://demo.flexibee.eu
 
 ## Author

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="addon">
+  <id>io.github.vitexsoftware.python_abraflexi_doc_en</id>
+  <extends>io.github.vitexsoftware.python_abraflexi</extends>
+  <icon type="stock">python-abraflexi</icon>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>python-abraflexi English Documentation</name>
+  <summary>English HTML documentation for python-abraflexi</summary>
+  <description>
+    <p>
+      Sphinx-generated English HTML documentation for python-abraflexi, a
+      Python client library for the AbraFlexi (FlexiBee) REST API. Covers
+      authentication, CRUD, filtering, pagination, batch operations,
+      attachments, the Changes API, reports and the evidence classes/mixins,
+      plus a full autodoc API reference.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/VitexSoftware/python-abraflexi</url>
+  <url type="bugtracker">https://github.com/VitexSoftware/python-abraflexi/issues</url>
+  <developer id="cz.vitexsoftware">
+    <name>Vítězslav Dvořák</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+</component>

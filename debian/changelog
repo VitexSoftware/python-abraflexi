@@ -1,3 +1,25 @@
+python-abraflexi (1.1.1-1) unstable; urgency=medium
+
+  * Add bilingual (English + Czech) Sphinx documentation under docs/en and
+    docs/cs, covering authentication, CRUD/identifiers, filtering,
+    pagination/sorting, detail levels/relations, batch operations/actions/
+    locking, attachments, the Changes API, reports/QR codes/user queries,
+    the evidence classes/mixins, error handling, and an autodoc-based API
+    reference
+  * Add python3-abraflexi-doc-en binary package: Sphinx/Shibuya-themed
+    English HTML documentation, installed to
+    /usr/share/doc/python3-abraflexi-doc-en/html with Apache2 and Nginx
+    serving snippets (pattern adapted from multiflexi-doc-en)
+  * Add project logo (python-abraflexi.svg) as the Sphinx theme logo/
+    favicon, plus links to the GitHub repository and VitexSoftware on the
+    documentation landing pages
+  * Fix docs/conf.py sys.path fixup to resolve relative to conf.py's own
+    location instead of the current working directory, so autodoc works
+    when Sphinx is invoked from the repo root during packaging
+  * Fix title underline length in docs/en/index.rst and docs/cs/index.rst
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 08:30:00 +0200
+
 python-abraflexi (1.1.0-1) unstable; urgency=medium
 
   * Add attachment upload support (add_attachment,

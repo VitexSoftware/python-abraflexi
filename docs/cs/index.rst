@@ -1,5 +1,14 @@
-Česká dokumentace
-==================
+.. image:: ../_static/python-abraflexi.svg
+   :align: center
+   :width: 160px
+   :alt: logo python-abraflexi
+   :target: https://github.com/VitexSoftware/python-abraflexi/
+
+Dokumentace knihovny python-abraflexi
+======================================
+
+`Zdrojový kód na GitHubu <https://github.com/VitexSoftware/python-abraflexi/>`_
+| Vyvíjí a udržuje `VitexSoftware <https://www.vitexsoftware.com/>`_
 
 .. toctree::
    :maxdepth: 2
