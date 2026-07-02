@@ -5,7 +5,13 @@
 // debian:forky disabled: Forky is still unstable/research-only.
 // The full Debian package ecosystem is not yet available for Forky.
 // Re-enable once the stack builds cleanly for Forky.
-String[] distributions = ['debian:bookworm', 'debian:trixie', 'ubuntu:jammy', 'ubuntu:noble']
+//
+// ubuntu:jammy disabled: ships Sphinx 4.3.2, which fails the docs build
+// with "Theme error: no theme named 'shibuya' found (missing theme.conf?)"
+// (see build #11: https://jenkins.proxy.spojenet.cz/job/VitexSoftware/job/python-abraflexi/11/).
+// Re-enable once a Sphinx/shibuya-theme combination compatible with jammy
+// is available.
+String[] distributions = ['debian:bookworm', 'debian:trixie', 'ubuntu:noble']
 
 String vendor = 'vitexsoftware'
 //String distroFamily = ''
