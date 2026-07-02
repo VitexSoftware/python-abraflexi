@@ -32,7 +32,7 @@ class ReadOnly:
     """
 
     # Library version
-    LIB_VERSION = "1.1.1"
+    LIB_VERSION = "1.1.2"
 
     # Default configuration
     DEFAULT_TIMEOUT = 300
@@ -624,9 +624,26 @@ class ReadOnly:
                 if "@globalVersion" in namespace_data:
                     self.global_version = int(namespace_data["@globalVersion"])
 
-                # Extract results
+                # Extract results. Write-operation responses (create/update/
+                # delete/actions) wrap their payload under the generic
+                # RESULT_FIELD ("results"), but plain read/listing responses
+                # instead wrap it under the evidence or sub-resource name
+                # itself (e.g. "adresar", "priloha", "zmeny") - there is no
+                # fixed key to look for there. Fall back to unwrapping the
+                # sole remaining non-metadata key in that case.
+                results = None
                 if self.RESULT_FIELD in namespace_data:
                     results = namespace_data[self.RESULT_FIELD]
+                else:
+                    payload_keys = [
+                        key
+                        for key in namespace_data
+                        if not key.startswith("@") and key not in ("success", "stats")
+                    ]
+                    if len(payload_keys) == 1:
+                        results = namespace_data[payload_keys[0]]
+
+                if results is not None:
                     self.last_result = results
 
                     # Convert native types
@@ -916,8 +933,11 @@ class ReadOnly:
 
         Args:
             columns: Column names to fetch
-            conditions: Filter conditions applied as URL parameters
-                (e.g. ``{"firma": "code:FIRMA"}``)
+            conditions: Equality conditions to filter by, combined with
+                "and" (e.g. ``{"firma": "code:FIRMA"}``) - applied as a
+                proper AbraFlexi filter expression, not raw URL parameters
+                (a bare query-string parameter is silently ignored by the
+                server; see the "Filtering" documentation)
             evidence: Evidence to query instead of the current one
 
         Returns:
@@ -938,7 +958,10 @@ class ReadOnly:
                 self._update_api_url()
             self.default_url_params["detail"] = "custom:" + ",".join(columns)
             if conditions:
-                self.default_url_params.update(conditions)
+                self.filter = " and ".join(
+                    f"{key} = '{value}'" if isinstance(value, str) else f"{key} = {value}"
+                    for key, value in conditions.items()
+                )
             result = self.get_all_from_abraflexi()
         finally:
             self.default_url_params = previous_params

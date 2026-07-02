@@ -1,3 +1,18 @@
+python-abraflexi (1.1.2-1) unstable; urgency=medium
+
+  * Fix response unwrapping: read/listing responses are wrapped under
+    the evidence/sub-resource name, not the generic 'results' key used
+    by write operations - _fetch_contact_projection, get_columns,
+    iterate_all and similar were silently getting the raw wrapped dict
+    instead of parsed data.
+  * Fix get_columns() applying "conditions" as raw (silently ignored) URL
+    query parameters instead of a real filter expression - discovered via
+    get_bank_account_number() leaking bank accounts across companies.
+  * Fix get_bank_account_number() to resolve the firma relation via the
+    address's kod (as actually stored: code:<kod>), not its numeric id.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 12:43:57 +0200
+
 python-abraflexi (1.1.1-1) unstable; urgency=medium
 
   * Add bilingual (English + Czech) Sphinx documentation under docs/en and

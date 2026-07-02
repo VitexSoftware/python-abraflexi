@@ -4,7 +4,7 @@ Python AbraFlexi - Python library for AbraFlexi REST API.
 This library provides easy interaction with the Czech economic system AbraFlexi.
 """
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __author__ = "Vítězslav Dvořák"
 __email__ = "info@vitexsoftware.cz"
 __license__ = "MIT"

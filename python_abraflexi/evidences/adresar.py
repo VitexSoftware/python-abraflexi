@@ -188,13 +188,19 @@ class Adresar(LabelsMixin, SubItemsMixin, RecordChangesMixin, ReadWrite):
         Get the bank account(s) registered for this (or another) address.
 
         Args:
-            address: Address identifier to look up; defaults to this record
+            address: Address identifier to look up; defaults to this
+                record's ``kod`` (the ``firma`` relation on
+                ``adresar-bankovni-ucet`` is stored as ``code:<kod>``, not
+                ``code:<id>``, so a bare numeric id will not match)
 
         Returns:
             List of rows with "buc" (account number) and "smerKod" (bank code)
         """
         if address is None:
-            address = self.my_key
+            kod = self.get_data_value("kod")
+            address = f"code:{kod}" if kod else self.my_key
+        elif isinstance(address, str) and not address.startswith("code:"):
+            address = f"code:{address}"
         return self.get_columns(
             ["buc", "smerKod"],
             conditions={"firma": address},
