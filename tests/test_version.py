@@ -22,7 +22,7 @@ class TestVersion:
     """Verify version strings agree across the project."""
 
     def test_init_version(self):
-        assert python_abraflexi.__version__ == "1.1.1"
+        assert python_abraflexi.__version__ == "1.1.2"
 
     def test_read_only_lib_version_matches_package(self):
         assert ReadOnly.LIB_VERSION == python_abraflexi.__version__
